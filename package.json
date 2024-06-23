@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "ant-design-vue": "^4.2.3",
     "vue": "^3.4.21",
     "vue-draggable-resizable": "^3.0.0"
   },
