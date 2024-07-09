@@ -5,14 +5,14 @@ import uuid from 'short-uuid'
 import ZIndexesManager from '../ZIndexesManager'
 import WorkspaceManager from '../WorkspaceManager'
 
-class GadgetsManager {
+class CellsManager {
   constructor() {
-    this._gadgets = {}
-    this._lastCleanGadgetsConfig = {}
-    this._gadgetWindows = {}
+    this._cells = {}
+    this._lastCleanCellsConfig = {}
+    this._windows = {}
     this._lastCleanWindowsConfig = {}
-    this._gadgetWindowNumbers = [0]
-    this._gadgetComponentsNumber = {}
+    this._cellWindowNumbers = [0]
+    this._cellComponentsNumber = {}
     this._availableComponents = {}
     this._canvasSize = {
       width: 700,
@@ -30,117 +30,117 @@ class GadgetsManager {
       borderRadiusBL: true,
       borderRadiusBR: true
     }
-    this._draggingSingleGadgetWindowID = null
+    this._draggingSingleCellWindowID = null
     this._eventBus = mitt()
     this._newWindowCreated = 0
     this.MIN_WIDTH = 100
     this.MIN_HEIGHT = 100
   }
 
-  init(gadgets, gadgetWindows, components) {
+  init(cells, windows, components) {
     this._availableComponents = components.reduce((acc, curComp) => ({ ...acc, [curComp.name]: curComp }), {})
-    this.initGadgetsAndWindows(gadgets, gadgetWindows)
-    watch(this._gadgets, () => {
-      const cleanGadgetsConfig = this.getCleanGadgetsConfig()
-      if (!isEqual(this._lastCleanGadgetsConfig, cleanGadgetsConfig)) {
-        this._lastCleanGadgetsConfig = cleanGadgetsConfig
-        WorkspaceManager.saveLocalGadgetsConfig(cleanGadgetsConfig)
+    this.initCellsAndWindows(cells, windows)
+    watch(this._cells, () => {
+      const cleanCellsConfig = this.getCleanCellsConfig()
+      if (!isEqual(this._lastCleanCellsConfig, cleanCellsConfig)) {
+        this._lastCleanCellsConfig = cleanCellsConfig
+        WorkspaceManager.saveLocalCellsConfig(cleanCellsConfig)
       }
     }, { deep: true })
-    watch(this._gadgetWindows, () => {
-      const cleanGadgetWindowsConfig = this.getCleanGadgetWindowsConfig()
-      if (!isEqual(this._lastCleanWindowsConfig, cleanGadgetWindowsConfig)) {
-        this._lastCleanWindowsConfig = cleanGadgetWindowsConfig
-        WorkspaceManager.saveLocalGadgetWindowConfig(cleanGadgetWindowsConfig)
+    watch(this._windows, () => {
+      const cleanwindowsConfig = this.getCleanwindowsConfig()
+      if (!isEqual(this._lastCleanWindowsConfig, cleanwindowsConfig)) {
+        this._lastCleanWindowsConfig = cleanwindowsConfig
+        WorkspaceManager.saveLocalCellWindowConfig(cleanwindowsConfig)
       }
     }, { deep: true })
   }
 
-  initGadgetsAndWindows(gadgets, gadgetWindows) {
-    this.checkGadgetAndWindowMatching(gadgets, gadgetWindows)
-    Object.keys(gadgets).forEach(key => {
-      const gadgetComponentName = gadgets[key]?.component?.name
-      if (gadgetComponentName) {
-        if (this._availableComponents[gadgetComponentName]) {
-          gadgets[key].component.hasConfig = this._availableComponents[gadgetComponentName].hasConfig || false
-          gadgets[key].component.nameID = this.getNextGadgaetComponentNumber(gadgetComponentName)
+  initCellsAndWindows(cells, windows) {
+    this.checkCellAndWindowMatching(cells, windows)
+    Object.keys(cells).forEach(key => {
+      const cellComponentName = cells[key]?.component?.name
+      if (cellComponentName) {
+        if (this._availableComponents[cellComponentName]) {
+          cells[key].component.hasConfig = this._availableComponents[cellComponentName].hasConfig || false
+          cells[key].component.nameID = this.getNextGadgaetComponentNumber(cellComponentName)
         } else {
-          gadgets[key].component = {}
+          cells[key].component = {}
         }
       }
     })
-    Object.keys(gadgets).forEach(gadgetID => { this._gadgets[gadgetID] = gadgets[gadgetID] })
-    Object.keys(gadgetWindows).forEach(windowID => { this._gadgetWindows[windowID] = gadgetWindows[windowID] })
-    this._lastCleanGadgetsConfig = this.getCleanGadgetsConfig()
-    this._lastCleanWindowsConfig = this.getCleanGadgetWindowsConfig()
-    Object.entries(gadgetWindows).forEach(([windowID, windowInfo]) => {
-      if (!windowInfo.isSingleGadget) {
-        this._gadgetWindows[windowID].nameID = this.getNextGadgetWindowNumber()
+    Object.keys(cells).forEach(cellID => { this._cells[cellID] = cells[cellID] })
+    Object.keys(windows).forEach(windowID => { this._windows[windowID] = windows[windowID] })
+    this._lastCleanCellsConfig = this.getCleanCellsConfig()
+    this._lastCleanWindowsConfig = this.getCleanwindowsConfig()
+    Object.entries(windows).forEach(([windowID, windowInfo]) => {
+      if (!windowInfo.isSingleCell) {
+        this._windows[windowID].nameID = this.getNextCellWindowNumber()
       }
       const pileSegmentsTree = windowInfo.pileSegmentsTree
       this.calcTreeNodeCellCountAndMinSize(pileSegmentsTree, windowID)
-      this.calcGadgetCellBordersAndHandlesForWindow(pileSegmentsTree, this._windowBorderStyle, false, false, `${windowID}.pileSegmentsTree`)
+      this.calcCellCellBordersAndHandlesForWindow(pileSegmentsTree, this._windowBorderStyle, false, false, `${windowID}.pileSegmentsTree`)
     })
   }
 
   /*
   **********************************************************
-  get information from GadgetManager
+  get information from WindowManager
   **********************************************************
   */
-  get gadgets() {
-    return this._gadgets
+  get cells() {
+    return this._cells
   }
 
-  get gadgetWindows() {
-    return this._gadgetWindows
+  get windows() {
+    return this._windows
   }
 
   get canvasSize() {
     return this._canvasSize
   }
 
-  get dragingSingleGadgetWindowID() {
-    return this._draggingSingleGadgetWindowID
+  get dragingSingleCellWindowID() {
+    return this._draggingSingleCellWindowID
   }
 
   hasComponent (componentName) {
-    Object.values(this._gadgets).forEach(gadget => {
-      if (get(gadget, 'component.name', '') === componentName) return True
+    Object.values(this._cells).forEach(cell => {
+      if (get(cell, 'component.name', '') === componentName) return True
     })
     return False
   }
 
-  getGadgetSize(gadgetID) {
+  getCellSize(cellID) {
     return {
-      width: this._gadgets[gadgetID]?.widthPix,
-      height: this._gadgets[gadgetID]?.heightPix
+      width: this._cells[cellID]?.widthPix,
+      height: this._cells[cellID]?.heightPix
     }
   }
 
-  getGadget(gadgetID) {
-    return this._gadgets[gadgetID]
+  getCell(cellID) {
+    return this._cells[cellID]
   }
 
-  getGadgetWindowIDTree() {
+  getCellWindowIDTree() {
     const windowTrees = {}
-    Object.entries(this._gadgetWindows).forEach(([windowID, windowInfo]) => {
-      const putIntoWindowTree = (gadgetID) => {
+    Object.entries(this._windows).forEach(([windowID, windowInfo]) => {
+      const putIntoWindowTree = (cellID) => {
         windowTrees[windowID] = {
-          gadgets: get(windowTrees, `${windowID}.gadgets`, []).concat({
-            gadgetID,
-            showName: get(this._gadgets, `${gadgetID}.component.nameID`)
-              ? `${this._gadgets[gadgetID].component.name}-${this._gadgets[gadgetID].component.nameID}`
+          cells: get(windowTrees, `${windowID}.cells`, []).concat({
+            cellID,
+            showName: get(this._cells, `${cellID}.component.nameID`)
+              ? `${this._cells[cellID].component.name}-${this._cells[cellID].component.nameID}`
               : 'Not Selected',
-            componentHasConfig: !!get(this._gadgets, `${gadgetID}.component.hasConfig`),
-            componentSelected: !!get(this._gadgets, `${gadgetID}.component.name`)
+            componentHasConfig: !!get(this._cells, `${cellID}.component.hasConfig`),
+            componentSelected: !!get(this._cells, `${cellID}.component.name`)
           }),
           showName: `Pile Window ${windowInfo.nameID}`,
           hide: windowInfo.hide,
-          isSingleGadget: windowInfo.isSingleGadget
+          isSingleCell: windowInfo.isSingleCell
         }
       }
-      const pileSegmentsTree = this._gadgetWindows[windowID].pileSegmentsTree
+      const pileSegmentsTree = this._windows[windowID].pileSegmentsTree
       this.findLeafNodesAndCallback(pileSegmentsTree, putIntoWindowTree)
     })
     return windowTrees
@@ -148,7 +148,7 @@ class GadgetsManager {
 
   /*
   **********************************************************
-  mark status on the object maintained by GadgetManger,
+  mark status on the object maintained by CellManger,
   but will not store into user workspace configurations
   **********************************************************
   */
@@ -156,23 +156,23 @@ class GadgetsManager {
     this._newWindowCreated = 0
   }
 
-  markSingleGadgetDragging(windowID, gadgetID) {
-    this._gadgetWindows[windowID].isDragging = true
-    this._gadgets[gadgetID].isDragging = true
-    this._draggingSingleGadgetWindowID = windowID
+  markSingleCellDragging(windowID, cellID) {
+    this._windows[windowID].isDragging = true
+    this._cells[cellID].isDragging = true
+    this._draggingSingleCellWindowID = windowID
   }
 
-  unmarkSingleGadgetDragging(windowID, gadgetID) {
-    if (this._gadgetWindows[windowID]) {
-      this._gadgetWindows[windowID].isDragging = false
-      this._gadgets[gadgetID].isDragging = false
+  unmarkSingleCellDragging(windowID, cellID) {
+    if (this._windows[windowID]) {
+      this._windows[windowID].isDragging = false
+      this._cells[cellID].isDragging = false
     }
-    this._draggingSingleGadgetWindowID = null
+    this._draggingSingleCellWindowID = null
   }
 
   saveWindowInfoAndCalcWholeTreeSize(windowID, rootWidth, rootHeight, rootLeft, rootTop) {
-    this._gadgetWindows[windowID] = {
-      ...this._gadgetWindows[windowID],
+    this._windows[windowID] = {
+      ...this._windows[windowID],
       leftPix: Math.round(rootLeft),
       topPix: Math.round(rootTop),
       widthPix: Math.round(rootWidth),
@@ -181,7 +181,7 @@ class GadgetsManager {
     this.calcWholeTreeSizeOnSavedWindowInfo(windowID)
   }
 
-  adaptWindowToCanvase(windowID, window) {
+  adaptWindowToCanvas(windowID, window) {
     const { width: canvasWidth, height: canvasHeight } = this._canvasSize
     if (window.isFullscreen) {
       this.saveWindowInfoAndCalcWholeTreeSize(windowID, canvasWidth, canvasHeight, 0, 0)
@@ -199,8 +199,8 @@ class GadgetsManager {
   }
 
   adaptWindowsToCanvasChange() {
-    for (const [windowID, window] of Object.entries(this._gadgetWindows)) {
-      this.adaptWindowToCanvase(windowID, window)
+    for (const [windowID, window] of Object.entries(this._windows)) {
+      this.adaptWindowToCanvas(windowID, window)
     }
   }
 
@@ -213,7 +213,7 @@ class GadgetsManager {
   updateCanvasMinSize() {
     this._canvasSize.minWidth = 102
     this._canvasSize.minHeight = 102
-    for (const window of Object.values(this._gadgetWindows)) {
+    for (const window of Object.values(this._windows)) {
       if (window.minHeight > this._canvasSize.minHeight) this._canvasSize.minHeight = window.minHeight
       if (window.minWidth > this._canvasSize.minHeight) this._canvasSize.minHeight = window.minWidth
     }
@@ -224,52 +224,52 @@ class GadgetsManager {
   Events that can be subcribed from anywhere else
   **********************************************************
   */
-  subscribeOpenGadgetConfig(callback) {
-    this._eventBus.on('toggleGadgetConfig', callback)
+  subscribeOpenCellConfig(callback) {
+    this._eventBus.on('toggleCellConfig', callback)
   }
 
-  unsubscribeOpenGadgetConfig(callback) {
-    this._eventBus.off('toggleGadgetConfig', callback)
+  unsubscribeOpenCellConfig(callback) {
+    this._eventBus.off('toggleCellConfig', callback)
   }
 
-  emitToggleGadgetConfig(gadgetID) {
-    this._eventBus.emit('toggleGadgetConfig', { gadgetID })
+  emitToggleCellConfig(cellID) {
+    this._eventBus.emit('toggleCellConfig', { cellID })
   }
 
-  subscribeReadyMountConfig(gadgetID, callback) {
-    this._eventBus.on(`readyMountConfig-${gadgetID}`, callback)
+  subscribeReadyMountConfig(cellID, callback) {
+    this._eventBus.on(`readyMountConfig-${cellID}`, callback)
   }
 
-  unsubscribeReadyMountConfig(gadgetID, callback) {
-    this._eventBus.off(`readyMountConfig-${gadgetID}`, callback)
+  unsubscribeReadyMountConfig(cellID, callback) {
+    this._eventBus.off(`readyMountConfig-${cellID}`, callback)
   }
 
-  emitReadyMountConfig(gadgetID) {
-    this._eventBus.emit(`readyMountConfig-${gadgetID}`)
+  emitReadyMountConfig(cellID) {
+    this._eventBus.emit(`readyMountConfig-${cellID}`)
   }
 
-  subscribeGadgetPanelChange(callback) {
-    this._eventBus.on('gadgetPanelChange', callback)
+  subscribeCellPanelChange(callback) {
+    this._eventBus.on('cellPanelChange', callback)
   }
 
-  unsubscribeGadgetPanelChange(callback) {
-    this._eventBus.off('gadgetPanelChange', callback)
+  unsubscribeCellPanelChange(callback) {
+    this._eventBus.off('cellPanelChange', callback)
   }
 
-  emitGadgetPanelChange() {
-    this._eventBus.emit('gadgetPanelChange')
+  emitCellPanelChange() {
+    this._eventBus.emit('cellPanelChange')
   }
 
-  subscribeGadgetCellComponentRemove(gadgetID, callback) {
-    this._eventBus.on(`gadgetCellComponentRemove-${gadgetID}`, callback)
+  subscribeCellCellComponentRemove(cellID, callback) {
+    this._eventBus.on(`cellCellComponentRemove-${cellID}`, callback)
   }
 
-  unsubscribeGadgetCellComponentRemove(gadgetID, callback) {
-    this._eventBus.off(`gadgetCellComponentRemove-${gadgetID}`, callback)
+  unsubscribeCellCellComponentRemove(cellID, callback) {
+    this._eventBus.off(`cellCellComponentRemove-${cellID}`, callback)
   }
 
-  emitGadgetCellComponentRemove(gadgetID) {
-    this._eventBus.emit(`gadgetCellComponentRemove-${gadgetID}`)
+  emitCellCellComponentRemove(cellID) {
+    this._eventBus.emit(`cellCellComponentRemove-${cellID}`)
   }
 
   subscribeWindowHighlight(windowID, callback) {
@@ -284,28 +284,28 @@ class GadgetsManager {
     this._eventBus.emit(`windowHighlight-${windowID}`, isHighlight)
   }
 
-  subscribeCellHighlight(gadgetID, callback) {
-    this._eventBus.on(`cellHighlight-${gadgetID}`, callback)
+  subscribeCellHighlight(cellID, callback) {
+    this._eventBus.on(`cellHighlight-${cellID}`, callback)
   }
 
-  unsubscribeCellHighlight(gadgetID, callback) {
-    this._eventBus.off(`cellHighlight-${gadgetID}`, callback)
+  unsubscribeCellHighlight(cellID, callback) {
+    this._eventBus.off(`cellHighlight-${cellID}`, callback)
   }
 
-  emitCellHighlight(gadgetID, isHighlight) {
-    this._eventBus.emit(`cellHighlight-${gadgetID}`, isHighlight)
+  emitCellHighlight(cellID, isHighlight) {
+    this._eventBus.emit(`cellHighlight-${cellID}`, isHighlight)
   }
 
-  subscribeCellContentOverflow(gadgetID, callback) {
-    this._eventBus.on(`cellContentOverflow-${gadgetID}`, callback)
+  subscribeCellContentOverflow(cellID, callback) {
+    this._eventBus.on(`cellContentOverflow-${cellID}`, callback)
   }
 
-  unsubscribeCellContentOverflow(gadgetID, callback) {
-    this._eventBus.off(`cellContentOverflow-${gadgetID}`, callback)
+  unsubscribeCellContentOverflow(cellID, callback) {
+    this._eventBus.off(`cellContentOverflow-${cellID}`, callback)
   }
 
-  emitCellContentOverflow(gadgetID, isOverflow) {
-    this._eventBus.emit(`cellContentOverflow-${gadgetID}`, isOverflow)
+  emitCellContentOverflow(cellID, isOverflow) {
+    this._eventBus.emit(`cellContentOverflow-${cellID}`, isOverflow)
   }
 
   /*
@@ -314,43 +314,43 @@ class GadgetsManager {
   user workspace configuration
   **********************************************************
   */
-  setGadgetConfig(gadgetID, newConfig) {
-    if (this._gadgets[gadgetID]?.component?.name) {
-      this._gadgets[gadgetID].component.config = newConfig
+  setCellConfig(cellID, newConfig) {
+    if (this._cells[cellID]?.component?.name) {
+      this._cells[cellID].component.config = newConfig
     }
   }
 
-  setGadgetData(gadgetID, newData) {
-    if (this._gadgets[gadgetID]?.component?.name) {
-      this._gadgets[gadgetID].component.data = newData
+  setCellData(cellID, newData) {
+    if (this._cells[cellID]?.component?.name) {
+      this._cells[cellID].component.data = newData
     }
   }
 
-  setGadgetConfigWithPath(gadgetID, path, newSubConfig) {
-    if (this._gadgets[gadgetID]?.component?.name) {
-      set(this._gadgets[gadgetID].component, `config.${path}`, newSubConfig)
+  setCellConfigWithPath(cellID, path, newSubConfig) {
+    if (this._cells[cellID]?.component?.name) {
+      set(this._cells[cellID].component, `config.${path}`, newSubConfig)
     }
   }
 
-  setGadgetDataWithPath(gadgetID, path, newSubData) {
-    if (this._gadgets[gadgetID]?.component?.name) {
-      set(this._gadgets[gadgetID].component, `data.${path}`, newSubData)
+  setCellDataWithPath(cellID, path, newSubData) {
+    if (this._cells[cellID]?.component?.name) {
+      set(this._cells[cellID].component, `data.${path}`, newSubData)
     }
   }
 
-  setGadgetWindowPosition(id, left, top) {
-    this._gadgetWindows[id].left = left
-    this._gadgetWindows[id].top = top
+  setCellWindowPosition(id, left, top) {
+    this._windows[id].left = left
+    this._windows[id].top = top
   }
 
-  setGadgetWindowSize(id, width, height) {
-    this._gadgetWindows[id].width = width
-    this._gadgetWindows[id].height = height
+  setwindowsize(id, width, height) {
+    this._windows[id].width = width
+    this._windows[id].height = height
   }
 
-  setGadgetComponent(component, gadgetID) {
+  setCellComponent(component, cellID) {
     if (component) {
-      set(this._gadgets, `${gadgetID}.component`, {
+      set(this._cells, `${cellID}.component`, {
         name: component.name,
         nameID: this.getNextGadgaetComponentNumber(component.name),
         hasConfig: component.hasConfig || false,
@@ -358,32 +358,32 @@ class GadgetsManager {
         config: component.default_config || {}
       })
     } else {
-      const componentToRemove = get(this._gadgets, `${gadgetID}.component`, {})
+      const componentToRemove = get(this._cells, `${cellID}.component`, {})
       if (componentToRemove.name) {
-        this.removeGadgetComponentNumber(componentToRemove.name, componentToRemove.nameID)
+        this.removeCellComponentNumber(componentToRemove.name, componentToRemove.nameID)
       }
-      set(this._gadgets, `${gadgetID}.component`, {})
+      set(this._cells, `${cellID}.component`, {})
     }
-    this.emitGadgetPanelChange()
-    this.emitGadgetCellComponentRemove(gadgetID)
+    this.emitCellPanelChange()
+    this.emitCellCellComponentRemove(cellID)
   }
 
   setWindowNotFullscreen(windowID) {
-    this._gadgetWindows[windowID].isFullscreen = false
+    this._windows[windowID].isFullscreen = false
   }
 
   setReversedWindowFullscreenStatus(windowID) {
-    this._gadgetWindows[windowID].isFullscreen = !this._gadgetWindows[windowID].isFullscreen
-    this.adaptWindowToCanvase(windowID, this._gadgetWindows[windowID])
+    this._windows[windowID].isFullscreen = !this._windows[windowID].isFullscreen
+    this.adaptWindowToCanvas(windowID, this._windows[windowID])
   }
 
-  setGadgetWindowShowAndHide(windowID, isShow) {
-    this._gadgetWindows[windowID].hide = !isShow
-    this.emitGadgetPanelChange()
+  setwindowshowAndHide(windowID, isShow) {
+    this._windows[windowID].hide = !isShow
+    this.emitCellPanelChange()
   }
 
-  setGadgetWindowTempShowAndHide(windowID, isTempShow) {
-    this._gadgetWindows[windowID].tempShow = isTempShow
+  setCellWindowTempShowAndHide(windowID, isTempShow) {
+    this._windows[windowID].tempShow = isTempShow
   }
 
   setCutRatioOnTreeNode(treeNode, deltaWidth, deltaHeight, treeNodePath, windowID) {
@@ -395,127 +395,127 @@ class GadgetsManager {
       let leftNodeWidth = Math.max(curLeftNodeWidth + deltaWidth, this.MIN_WIDTH)
       leftNodeWidth = (levelWidth - leftNodeWidth) < this.MIN_WIDTH ? levelWidth - this.MIN_WIDTH : leftNodeWidth
       const newCutRatio = leftNodeWidth / levelWidth
-      set(this._gadgetWindows, `${treeNodePath}.cutRatio`, newCutRatio)
+      set(this._windows, `${treeNodePath}.cutRatio`, newCutRatio)
     } else {
       const levelHeight = treeNode.heightPix
       let leftNodeHeight = Math.max(curLeftNodeHeight + deltaHeight, this.MIN_HEIGHT)
       leftNodeHeight = (levelHeight - leftNodeHeight) < this.MIN_HEIGHT ? levelHeight - this.MIN_HEIGHT : leftNodeHeight
       const newCutRatio = leftNodeHeight / levelHeight
-      set(this._gadgetWindows, `${treeNodePath}.cutRatio`, newCutRatio)
+      set(this._windows, `${treeNodePath}.cutRatio`, newCutRatio)
     }
     this.calcWholeTreeSizeOnSavedWindowInfo(windowID)
   }
 
-  splitGadgetCell(gadgetID, cutDirection) {
-    const windowID = this._gadgets[gadgetID].windowID
-    const gadgetWindow = this._gadgetWindows[windowID]
-    const newGadgetID = uuid.generate()
-    const pileSegmentsTree = gadgetWindow.pileSegmentsTree
+  splitCellCell(cellID, cutDirection) {
+    const windowID = this._cells[cellID].windowID
+    const cellWindow = this._windows[windowID]
+    const newCellID = uuid.generate()
+    const pileSegmentsTree = cellWindow.pileSegmentsTree
 
-    const { path: oldGadgetTreeNodePath } = this.findGadgetTreeNodePath(pileSegmentsTree, `${windowID}.pileSegmentsTree`, gadgetID)
+    const { path: oldCellTreeNodePath } = this.findCellTreeNodePath(pileSegmentsTree, `${windowID}.pileSegmentsTree`, cellID)
     const newTreeNode = {
       cutDirection: cutDirection,
       cutRatio: 0.5,
       leftNode: {
-        ID: gadgetID
+        ID: cellID
       },
       rightNode: {
-        ID: newGadgetID
+        ID: newCellID
       }
     }
-    set(this._gadgetWindows, oldGadgetTreeNodePath, newTreeNode)
-    this._gadgets[newGadgetID] = { windowID: windowID }
+    set(this._windows, oldCellTreeNodePath, newTreeNode)
+    this._cells[newCellID] = { windowID: windowID }
 
-    this.calcGadgetCellBordersAndHandlesForWindow(gadgetWindow.pileSegmentsTree, this._windowBorderStyle, false, false, `${windowID}.pileSegmentsTree`)
-    if (gadgetWindow.isSingleGadget) {
-      gadgetWindow.isSingleGadget = false
-      gadgetWindow.nameID = this.getNextGadgetWindowNumber()
+    this.calcCellCellBordersAndHandlesForWindow(cellWindow.pileSegmentsTree, this._windowBorderStyle, false, false, `${windowID}.pileSegmentsTree`)
+    if (cellWindow.isSingleCell) {
+      cellWindow.isSingleCell = false
+      cellWindow.nameID = this.getNextCellWindowNumber()
     }
-    this.calcTreeNodeCellCountAndMinSize(gadgetWindow.pileSegmentsTree, windowID)
+    this.calcTreeNodeCellCountAndMinSize(cellWindow.pileSegmentsTree, windowID)
     this.calcWholeTreeSizeOnSavedWindowInfo(windowID)
-    this.emitGadgetPanelChange()
+    this.emitCellPanelChange()
   }
 
-  replaceCellWithSingleGadget(replacedGadgetID, replacedWindowID) {
-    const replacingWindowID = this._draggingSingleGadgetWindowID
+  replaceCellWithSingleCell(replacedCellID, replacedWindowID) {
+    const replacingWindowID = this._draggingSingleCellWindowID
     if (!replacingWindowID) return
-    const replacingGadgetID = this._gadgetWindows[replacingWindowID].pileSegmentsTree.ID
-    const replacingGadget = this._gadgets[replacingGadgetID]
-    const replacedGadget = this._gadgets[replacedGadgetID]
-    const windowWithGadgetToReplace = this._gadgetWindows[replacedWindowID]
-    const replaceGadgetIDInTree = (treeNode, path) => {
+    const replacingCellID = this._windows[replacingWindowID].pileSegmentsTree.ID
+    const replacingCell = this._cells[replacingCellID]
+    const replacedCell = this._cells[replacedCellID]
+    const windowWithCellToReplace = this._windows[replacedWindowID]
+    const replaceCellIDInTree = (treeNode, path) => {
       if (treeNode.ID) {
-        if (treeNode.ID === replacedGadgetID) set(this._gadgetWindows, `${path}.ID`, replacingGadgetID)
+        if (treeNode.ID === replacedCellID) set(this._windows, `${path}.ID`, replacingCellID)
         return
       }
-      replaceGadgetIDInTree(treeNode.leftNode, `${path}.leftNode`)
-      replaceGadgetIDInTree(treeNode.rightNode, `${path}.rightNode`)
+      replaceCellIDInTree(treeNode.leftNode, `${path}.leftNode`)
+      replaceCellIDInTree(treeNode.rightNode, `${path}.rightNode`)
     }
-    replaceGadgetIDInTree(windowWithGadgetToReplace.pileSegmentsTree, `${replacedWindowID}.pileSegmentsTree`)
-    this._gadgets[replacingGadgetID] = {
-      ...replacedGadget,
-      component: replacingGadget.component,
+    replaceCellIDInTree(windowWithCellToReplace.pileSegmentsTree, `${replacedWindowID}.pileSegmentsTree`)
+    this._cells[replacingCellID] = {
+      ...replacedCell,
+      component: replacingCell.component,
       isDragging: false
     }
-    this._gadgetWindows[replacingWindowID].pileSegmentsTree.ID = replacedGadgetID
-    this.removeGadgetWindow(replacingWindowID)
+    this._windows[replacingWindowID].pileSegmentsTree.ID = replacedCellID
+    this.removeCellWindow(replacingWindowID)
   }
 
-  removeGadgetCell(gadgetID) {
-    const gadgetToRemove = this._gadgets[gadgetID]
-    const windowID = gadgetToRemove.windowID
-    const gadgetWindow = this._gadgetWindows[windowID]
-    const pileSegmentsTree = gadgetWindow.pileSegmentsTree
-    const { path: gadgetTreeNodePath } = this.findGadgetTreeNodePath(pileSegmentsTree, `${windowID}.pileSegmentsTree`, gadgetID)
-    const pathSections = gadgetTreeNodePath.split('.')
-    const gadgetParentNodePath = pathSections.slice(0, pathSections.length - 1).join('.')
-    const gadgetParentNode = get(this._gadgetWindows, gadgetParentNodePath)
-    if (get(gadgetParentNode, 'leftNode.ID') === gadgetID) {
-      set(this._gadgetWindows, gadgetParentNodePath, { ...gadgetParentNode.rightNode })
+  removeCellCell(cellID) {
+    const cellToRemove = this._cells[cellID]
+    const windowID = cellToRemove.windowID
+    const cellWindow = this._windows[windowID]
+    const pileSegmentsTree = cellWindow.pileSegmentsTree
+    const { path: cellTreeNodePath } = this.findCellTreeNodePath(pileSegmentsTree, `${windowID}.pileSegmentsTree`, cellID)
+    const pathSections = cellTreeNodePath.split('.')
+    const cellParentNodePath = pathSections.slice(0, pathSections.length - 1).join('.')
+    const cellParentNode = get(this._windows, cellParentNodePath)
+    if (get(cellParentNode, 'leftNode.ID') === cellID) {
+      set(this._windows, cellParentNodePath, { ...cellParentNode.rightNode })
     } else {
-      set(this._gadgetWindows, gadgetParentNodePath, { ...gadgetParentNode.leftNode })
+      set(this._windows, cellParentNodePath, { ...cellParentNode.leftNode })
     }
-    const updatedPileSegmentsTree = gadgetWindow.pileSegmentsTree
-    this.calcGadgetCellBordersAndHandlesForWindow(updatedPileSegmentsTree, this._windowBorderStyle, false, false, `${windowID}.pileSegmentsTree`)
+    const updatedPileSegmentsTree = cellWindow.pileSegmentsTree
+    this.calcCellCellBordersAndHandlesForWindow(updatedPileSegmentsTree, this._windowBorderStyle, false, false, `${windowID}.pileSegmentsTree`)
     if (updatedPileSegmentsTree.ID) {
-      gadgetWindow.pileSegmentsTree = {
-        ID: gadgetWindow.pileSegmentsTree.ID
+      cellWindow.pileSegmentsTree = {
+        ID: cellWindow.pileSegmentsTree.ID
       }
-      gadgetWindow.isSingleGadget = true
-      this.removeGadgetWindowNumber(gadgetWindow.nameID)
+      cellWindow.isSingleCell = true
+      this.removeCellWindowNumber(cellWindow.nameID)
     }
-    if (gadgetToRemove?.component?.name) {
-      this.removeGadgetComponentNumber(gadgetToRemove.component.name, gadgetToRemove.component.nameID)
+    if (cellToRemove?.component?.name) {
+      this.removeCellComponentNumber(cellToRemove.component.name, cellToRemove.component.nameID)
     }
-    this.calcTreeNodeCellCountAndMinSize(gadgetWindow.pileSegmentsTree, windowID)
+    this.calcTreeNodeCellCountAndMinSize(cellWindow.pileSegmentsTree, windowID)
     this.calcWholeTreeSizeOnSavedWindowInfo(windowID)
-    delete this._gadgets[gadgetID]
-    this.emitGadgetCellComponentRemove(gadgetID)
-    this.emitGadgetPanelChange()
+    delete this._cells[cellID]
+    this.emitCellCellComponentRemove(cellID)
+    this.emitCellPanelChange()
   }
 
-  removeGadgetWindow(windowID) {
-    const pileSegmentsTree = this._gadgetWindows[windowID].pileSegmentsTree
+  removeCellWindow(windowID) {
+    const pileSegmentsTree = this._windows[windowID].pileSegmentsTree
     this.findLeafNodesAndCallback(pileSegmentsTree, (leafID) => {
-      const componentToRemove = get(this._gadgets, `${leafID}.component`, {})
+      const componentToRemove = get(this._cells, `${leafID}.component`, {})
       if (componentToRemove.name) {
-        this.removeGadgetComponentNumber(componentToRemove.name, componentToRemove.nameID)
+        this.removeCellComponentNumber(componentToRemove.name, componentToRemove.nameID)
       }
-      delete this._gadgets[leafID]
-      this.emitGadgetCellComponentRemove(leafID)
+      delete this._cells[leafID]
+      this.emitCellCellComponentRemove(leafID)
     })
-    if (!this._gadgetWindows[windowID].isSingleGadget) {
-      this.removeGadgetWindowNumber(this._gadgetWindows[windowID].nameID)
+    if (!this._windows[windowID].isSingleCell) {
+      this.removeCellWindowNumber(this._windows[windowID].nameID)
     }
     ZIndexesManager.removeWindow(windowID)
-    delete this._gadgetWindows[windowID]
-    this.emitGadgetPanelChange()
+    delete this._windows[windowID]
+    this.emitCellPanelChange()
     this.updateCanvasMinSize()
   }
 
-  createGadget(component) {
-    const newGadgetID = uuid.generate()
-    const newGadgetWindowID = uuid.generate()
+  createCell(component) {
+    const newCellID = uuid.generate()
+    const newCellWindowID = uuid.generate()
     const componentCopy = { ...component }
     if (componentCopy.name) {
       componentCopy.nameID = this.getNextGadgaetComponentNumber(componentCopy.name)
@@ -523,12 +523,12 @@ class GadgetsManager {
       componentCopy.config = this._availableComponents[componentCopy.name].default_config || {}
       componentCopy.hasConfig = this._availableComponents[componentCopy.name].hasConfig || false
     }
-    this._gadgets[newGadgetID] = {
+    this._cells[newCellID] = {
       component: componentCopy,
-      windowID: newGadgetWindowID,
+      windowID: newCellWindowID,
       borderStyles: this._windowBorderStyle
     }
-    this._gadgetWindows[newGadgetWindowID] = {
+    this._windows[newCellWindowID] = {
       left: 0.5 - this._newWindowCreated * 0.03,
       top: 0 + this._newWindowCreated * 0.03,
       width: 0.3,
@@ -536,16 +536,16 @@ class GadgetsManager {
       hide: false,
       minWidth: this.MIN_WIDTH,
       minHeight: this.MIN_HEIGHT,
-      isSingleGadget: true,
+      isSingleCell: true,
       pinned: false,
       pileSegmentsTree: {
-        ID: newGadgetID
+        ID: newCellID
       }
     }
     this._newWindowCreated += 1
-    this.adaptWindowToCanvase(newGadgetWindowID, this._gadgetWindows[newGadgetWindowID])
-    ZIndexesManager.addWindow(newGadgetWindowID)
-    this.emitGadgetPanelChange()
+    this.adaptWindowToCanvas(newCellWindowID, this._windows[newCellWindowID])
+    ZIndexesManager.addWindow(newCellWindowID)
+    this.emitCellPanelChange()
   }
 
   /*
@@ -553,36 +553,36 @@ class GadgetsManager {
   Helper functions
   **********************************************************
   */
-  checkGadgetIDInPileTreeMatches(treeNode, cell2Window, windowID) {
+  checkCellIDInPileTreeMatches(treeNode, cell2Window, windowID) {
     if (treeNode.ID) {
       if (cell2Window.get(treeNode.ID) !== windowID) {
-        throw new Error(`gadget (ID: ${treeNode.ID}) mapping to gadget window error`)
+        throw new Error(`cell (ID: ${treeNode.ID}) mapping to cell window error`)
       } else {
         cell2Window.delete(treeNode.ID)
       }
     }
-    if (treeNode.leftNode) this.checkGadgetIDInPileTreeMatches(treeNode.leftNode, cell2Window, windowID)
-    if (treeNode.rightNode) this.checkGadgetIDInPileTreeMatches(treeNode.rightNode, cell2Window, windowID)
+    if (treeNode.leftNode) this.checkCellIDInPileTreeMatches(treeNode.leftNode, cell2Window, windowID)
+    if (treeNode.rightNode) this.checkCellIDInPileTreeMatches(treeNode.rightNode, cell2Window, windowID)
   }
 
-  checkGadgetAndWindowMatching(gadgets, gadgetWindows) {
+  checkCellAndWindowMatching(cells, windows) {
     const cell2Window = new Map()
-    for (const [gadgetID, gadget] of Object.entries(gadgets)) {
-      cell2Window.set(gadgetID, gadget.windowID)
+    for (const [cellID, cell] of Object.entries(cells)) {
+      cell2Window.set(cellID, cell.windowID)
     }
 
-    for (const [windowID, window] of Object.entries(gadgetWindows)) {
-      this.checkGadgetIDInPileTreeMatches(window.pileSegmentsTree, cell2Window, windowID)
+    for (const [windowID, window] of Object.entries(windows)) {
+      this.checkCellIDInPileTreeMatches(window.pileSegmentsTree, cell2Window, windowID)
     }
-    if (cell2Window.size !== 0) throw new Error(`Gadgets ${Array.from(cell2Window.keys())} not belong to any gadgetWindow`)
+    if (cell2Window.size !== 0) throw new Error(`Cells ${Array.from(cell2Window.keys())} not belong to any cellWindow`)
   }
 
-  getCleanGadgetsConfig() {
-    const cleanGadgetConfig = {}
-    for (const [gadgetID, gadget] of Object.entries(this._gadgets)) {
-      const component = cloneDeep(gadget.component)
-      cleanGadgetConfig[gadgetID] = {
-        windowID: gadget.windowID,
+  getCleanCellsConfig() {
+    const cleanCellConfig = {}
+    for (const [cellID, cell] of Object.entries(this._cells)) {
+      const component = cloneDeep(cell.component)
+      cleanCellConfig[cellID] = {
+        windowID: cell.windowID,
         component: component
           ? {
             name: component.name,
@@ -592,7 +592,7 @@ class GadgetsManager {
           : null
       }
     }
-    return cleanGadgetConfig
+    return cleanCellConfig
   }
 
   getCleanPileSegmentsTree(treeNode) {
@@ -606,43 +606,43 @@ class GadgetsManager {
     }
   }
 
-  getCleanGadgetWindowsConfig() {
-    const cleanGadgetWindowsConfig = {}
-    for (const [windowID, window] of Object.entries(this._gadgetWindows)) {
+  getCleanwindowsConfig() {
+    const cleanwindowsConfig = {}
+    for (const [windowID, window] of Object.entries(this._windows)) {
       const newTree = this.getCleanPileSegmentsTree(window.pileSegmentsTree)
-      cleanGadgetWindowsConfig[windowID] = {
+      cleanwindowsConfig[windowID] = {
         left: window.left,
         top: window.top,
         width: window.width,
         height: window.height,
         hide: window.hide,
-        isSingleGadget: window.isSingleGadget,
+        isSingleCell: window.isSingleCell,
         isFullscreen: window.isFullscreen,
         pileSegmentsTree: newTree
       }
     }
-    return cleanGadgetWindowsConfig
+    return cleanwindowsConfig
   }
 
-  getNextGadgetWindowNumber() {
-    const currentMax = this._gadgetWindowNumbers[this._gadgetWindowNumbers.length - 1]
-    this._gadgetWindowNumbers.push(currentMax + 1)
+  getNextCellWindowNumber() {
+    const currentMax = this._cellWindowNumbers[this._cellWindowNumbers.length - 1]
+    this._cellWindowNumbers.push(currentMax + 1)
     return currentMax + 1
   }
 
   getNextGadgaetComponentNumber(componentName) {
-    this._gadgetComponentsNumber[componentName] = get(this._gadgetComponentsNumber, componentName, [0])
-    const currentMax = this._gadgetComponentsNumber[componentName][this._gadgetComponentsNumber[componentName].length - 1]
-    this._gadgetComponentsNumber[componentName].push(currentMax + 1)
+    this._cellComponentsNumber[componentName] = get(this._cellComponentsNumber, componentName, [0])
+    const currentMax = this._cellComponentsNumber[componentName][this._cellComponentsNumber[componentName].length - 1]
+    this._cellComponentsNumber[componentName].push(currentMax + 1)
     return currentMax + 1
   }
 
-  removeGadgetWindowNumber(removedWindowID) {
-    this._gadgetWindowNumbers = this._gadgetWindowNumbers.filter(nameID => nameID !== removedWindowID)
+  removeCellWindowNumber(removedWindowID) {
+    this._cellWindowNumbers = this._cellWindowNumbers.filter(nameID => nameID !== removedWindowID)
   }
 
-  removeGadgetComponentNumber(removedComponentName, removedComponentID) {
-    this._gadgetComponentsNumber[removedComponentName] = this._gadgetComponentsNumber[removedComponentName].filter(nameID => nameID !== removedComponentID)
+  removeCellComponentNumber(removedComponentName, removedComponentID) {
+    this._cellComponentsNumber[removedComponentName] = this._cellComponentsNumber[removedComponentName].filter(nameID => nameID !== removedComponentID)
   }
 
   percentageToPixel(parentPix, percentage) {
@@ -660,17 +660,17 @@ class GadgetsManager {
 
   calcTreeNodeCellCountAndMinSize(treeNode, windowID) {
     this.calcTreeNodeCellCount(treeNode, `${windowID}.pileSegmentsTree`)
-    const gadgetWindow = this._gadgetWindows[windowID]
-    const windowMinH = gadgetWindow.pileSegmentsTree.hCellCount * this.MIN_HEIGHT
-    const windowMinW = gadgetWindow.pileSegmentsTree.vCellCount * this.MIN_WIDTH
-    gadgetWindow.minHeight = windowMinH
-    gadgetWindow.minWidth = windowMinW
+    const cellWindow = this._windows[windowID]
+    const windowMinH = cellWindow.pileSegmentsTree.hCellCount * this.MIN_HEIGHT
+    const windowMinW = cellWindow.pileSegmentsTree.vCellCount * this.MIN_WIDTH
+    cellWindow.minHeight = windowMinH
+    cellWindow.minWidth = windowMinW
     if (windowMinH > this._canvasSize.minHeight) this._canvasSize.minHeight = windowMinH + 2
     if (windowMinW > this._canvasSize.minWidth) this._canvasSize.minWidth = windowMinW + 2
-    const markGadgetMinSize = (treeNode, levelMinH, levelMinW) => {
+    const markCellMinSize = (treeNode, levelMinH, levelMinW) => {
       if (treeNode.ID) {
-        this._gadgets[treeNode.ID].minHeight = levelMinH
-        this._gadgets[treeNode.ID].minWidth = levelMinW
+        this._cells[treeNode.ID].minHeight = levelMinH
+        this._cells[treeNode.ID].minWidth = levelMinW
         return
       }
       const isCutVertically = treeNode.cutDirection === 'v'
@@ -685,16 +685,16 @@ class GadgetsManager {
       const rightNodeMinW = isCutVertically ? rightNodeSubTreeMinW : Math.max(leftNodeSubTreeMinW, rightNodeSubTreeMinW)
       const rightNodeMinH = isCutVertically ? Math.max(leftNodeSubTreeMinH, rightNodeSubTreeMinH) : rightNodeSubTreeMinH
 
-      markGadgetMinSize(treeNode.leftNode, leftNodeMinH, leftNodeMinW)
-      markGadgetMinSize(treeNode.rightNode, rightNodeMinH, rightNodeMinW)
+      markCellMinSize(treeNode.leftNode, leftNodeMinH, leftNodeMinW)
+      markCellMinSize(treeNode.rightNode, rightNodeMinH, rightNodeMinW)
     }
-    markGadgetMinSize(treeNode, windowMinH, windowMinW)
+    markCellMinSize(treeNode, windowMinH, windowMinW)
   }
 
   calcTreeNodeCellCount(treeNode, path) {
     if (treeNode.ID) {
-      set(this._gadgetWindows, `${path}.hCellCount`, 1)
-      set(this._gadgetWindows, `${path}.vCellCount`, 1)
+      set(this._windows, `${path}.hCellCount`, 1)
+      set(this._windows, `${path}.vCellCount`, 1)
       return { h: 1, v: 1 }
     }
     const { h: lh, v: lv } = this.calcTreeNodeCellCount(treeNode.leftNode, `${path}.leftNode`)
@@ -703,17 +703,17 @@ class GadgetsManager {
       h: treeNode.cutDirection === 'v' ? Math.max(lh, rh) : lh + rh,
       v: treeNode.cutDirection === 'v' ? lv + rv : Math.max(lv, rv)
     }
-    set(this._gadgetWindows, `${path}.hCellCount`, curCount.h)
-    set(this._gadgetWindows, `${path}.vCellCount`, curCount.v)
+    set(this._windows, `${path}.hCellCount`, curCount.h)
+    set(this._windows, `${path}.vCellCount`, curCount.v)
     return curCount
   }
 
-  calcGadgetCellBordersAndHandlesForWindow(treeNode, borderStyles, levelHasRightHandle, levelHasBottomHandle, path) {
+  calcCellCellBordersAndHandlesForWindow(treeNode, borderStyles, levelHasRightHandle, levelHasBottomHandle, path) {
     const { borderT, borderB, borderL, borderR, borderRadiusTL, borderRadiusTR, borderRadiusBL, borderRadiusBR } = borderStyles
     if (treeNode.ID) {
-      this._gadgets[treeNode.ID].borderStyles = borderStyles
-      this._gadgets[treeNode.ID].hasRightHandle = levelHasRightHandle
-      this._gadgets[treeNode.ID].hasBottomHandle = levelHasBottomHandle
+      this._cells[treeNode.ID].borderStyles = borderStyles
+      this._cells[treeNode.ID].hasRightHandle = levelHasRightHandle
+      this._cells[treeNode.ID].hasBottomHandle = levelHasBottomHandle
       return
     }
     const cutDirection = treeNode.cutDirection
@@ -745,28 +745,28 @@ class GadgetsManager {
       borderRadiusBR
     }
 
-    this.calcGadgetCellBordersAndHandlesForWindow(treeNode.leftNode, leftNodeBorderStyles, leftNodeHasRightHandle, leftNodeHasBottomHandle, `${path}.leftNode`)
-    this.calcGadgetCellBordersAndHandlesForWindow(treeNode.rightNode, rightNodeBorderStyles, rightNodeHasRightHandle, rightNodeHasBottomHandle, `${path}.rightNode`)
+    this.calcCellCellBordersAndHandlesForWindow(treeNode.leftNode, leftNodeBorderStyles, leftNodeHasRightHandle, leftNodeHasBottomHandle, `${path}.leftNode`)
+    this.calcCellCellBordersAndHandlesForWindow(treeNode.rightNode, rightNodeBorderStyles, rightNodeHasRightHandle, rightNodeHasBottomHandle, `${path}.rightNode`)
   }
 
   calcSegmentNodeSize(levelInfo, treeNode, path, windowInfo) {
     const { levelTop, levelLeft, levelWidth, levelHeight, maxWidth, maxHeight } = levelInfo
-    set(this._gadgetWindows, `${path}.widthPix`, levelWidth)
-    set(this._gadgetWindows, `${path}.heightPix`, levelHeight)
+    set(this._windows, `${path}.widthPix`, levelWidth)
+    set(this._windows, `${path}.heightPix`, levelHeight)
 
     const isLeafNode = !!treeNode.ID
     if (isLeafNode) {
       const { top: windowTop, left: windowLeft, width: windowWidth, height: windowHeight } = windowInfo
-      this._gadgets[treeNode.ID].widthPix = levelWidth
-      this._gadgets[treeNode.ID].heightPix = levelHeight
-      this._gadgets[treeNode.ID].topPix = levelTop
-      this._gadgets[treeNode.ID].leftPix = levelLeft
-      this._gadgets[treeNode.ID].maxWidth = maxWidth
-      this._gadgets[treeNode.ID].maxHeight = maxHeight
-      this._gadgets[treeNode.ID].topOffsetToWindow = levelTop - windowTop
-      this._gadgets[treeNode.ID].bottomOffsetToWindow = (windowHeight + windowTop) - (levelTop + levelHeight)
-      this._gadgets[treeNode.ID].leftOffsetToWindow = levelLeft - windowLeft
-      this._gadgets[treeNode.ID].rightOffsetToWindow = (windowWidth + windowLeft) - (levelLeft + levelWidth)
+      this._cells[treeNode.ID].widthPix = levelWidth
+      this._cells[treeNode.ID].heightPix = levelHeight
+      this._cells[treeNode.ID].topPix = levelTop
+      this._cells[treeNode.ID].leftPix = levelLeft
+      this._cells[treeNode.ID].maxWidth = maxWidth
+      this._cells[treeNode.ID].maxHeight = maxHeight
+      this._cells[treeNode.ID].topOffsetToWindow = levelTop - windowTop
+      this._cells[treeNode.ID].bottomOffsetToWindow = (windowHeight + windowTop) - (levelTop + levelHeight)
+      this._cells[treeNode.ID].leftOffsetToWindow = levelLeft - windowLeft
+      this._cells[treeNode.ID].rightOffsetToWindow = (windowWidth + windowLeft) - (levelLeft + levelWidth)
       return
     }
 
@@ -817,31 +817,31 @@ class GadgetsManager {
   }
 
   calcWholeTreeSizeOnSavedWindowInfo(windowID) {
-    const gadgetWindow = this._gadgetWindows[windowID]
-    const pileSegmentsTree = gadgetWindow.pileSegmentsTree
+    const cellWindow = this._windows[windowID]
+    const pileSegmentsTree = cellWindow.pileSegmentsTree
     const rootPosition = {
-      levelTop: gadgetWindow.topPix,
-      levelLeft: gadgetWindow.leftPix,
-      levelWidth: gadgetWindow.widthPix,
-      levelHeight: gadgetWindow.heightPix,
-      maxWidth: gadgetWindow.widthPix,
-      maxHeight: gadgetWindow.heighPixt
+      levelTop: cellWindow.topPix,
+      levelLeft: cellWindow.leftPix,
+      levelWidth: cellWindow.widthPix,
+      levelHeight: cellWindow.heightPix,
+      maxWidth: cellWindow.widthPix,
+      maxHeight: cellWindow.heighPixt
     }
     const windowInfo = {
-      top: gadgetWindow.topPix,
-      left: gadgetWindow.leftPix,
-      width: gadgetWindow.widthPix,
-      height: gadgetWindow.heightPix
+      top: cellWindow.topPix,
+      left: cellWindow.leftPix,
+      width: cellWindow.widthPix,
+      height: cellWindow.heightPix
     }
     this.calcSegmentNodeSize(rootPosition, pileSegmentsTree, `${windowID}.pileSegmentsTree`, windowInfo)
   }
 
-  propagateCellSizeChange(gadgetID, deltaWidth, deltaHeight, resizeHandleDirection) {
-    const windowID = this._gadgets[gadgetID].windowID
-    const treeRoot = this._gadgetWindows[windowID].pileSegmentsTree
+  propagateCellSizeChange(cellID, deltaWidth, deltaHeight, resizeHandleDirection) {
+    const windowID = this._cells[cellID].windowID
+    const treeRoot = this._windows[windowID].pileSegmentsTree
     const findAffectedCellContainerAndSetCutRatio = (treeNode, path) => {
       if (treeNode.ID) {
-        return treeNode.ID === gadgetID
+        return treeNode.ID === cellID
       }
       const foundLeft = findAffectedCellContainerAndSetCutRatio(treeNode.leftNode, `${path}.leftNode`)
       if (foundLeft) {
@@ -861,20 +861,20 @@ class GadgetsManager {
     findAffectedCellContainerAndSetCutRatio(treeRoot, `${windowID}.pileSegmentsTree`)
   }
 
-  findGadgetTreeNodePath(treeNode, path, targetID) {
+  findCellTreeNodePath(treeNode, path, targetID) {
     if (treeNode.ID) {
       return treeNode.ID === targetID ? { found: true, path } : { found: false, path: '' }
     }
-    const { found: lFound, path: lReturnedPath } = this.findGadgetTreeNodePath(treeNode.leftNode, `${path}.leftNode`, targetID)
+    const { found: lFound, path: lReturnedPath } = this.findCellTreeNodePath(treeNode.leftNode, `${path}.leftNode`, targetID)
     if (lFound) return { found: true, path: lReturnedPath }
-    const { found: rFound, path: rReturnedPath } = this.findGadgetTreeNodePath(treeNode.rightNode, `${path}.rightNode`, targetID)
+    const { found: rFound, path: rReturnedPath } = this.findCellTreeNodePath(treeNode.rightNode, `${path}.rightNode`, targetID)
     if (rFound) return { found: true, path: rReturnedPath }
     return { found: false, path: '' }
   }
 
-  createEmptyGadget() {
-    this.createGadget({})
+  createEmptyCell() {
+    this.createCell({})
   }
 }
 
-export default reactive(new GadgetsManager())
+export default reactive(new CellsManager())

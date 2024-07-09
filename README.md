@@ -4,12 +4,12 @@ This workspace could be a great starting point for anyone looking for a workspac
 
 It provides the code for calculating each windows' position, zIndex etc. And provide methods to ping/unping each window. Please see all the available features listed down below.
 
-Because this hmi-workspace management tool provides several managers for you to use, you will be able to utilize this workspace management with any UI framework. Simply bind these methods to the UI component/frameworks of your choice.
+Because this hmi-workspace management tool provides several managers for you to use, you will be able to utilize this workspace management with any UI components. Simply bind these methods to the UI component of your choice. This project also provided code examples for you to reference. They should be pretty straight forward to understand.
 
 ### Features:
 - Centralized zIndex management, no need to worry able the zIndex anymore. When you interact with these windows, zIndex will be automatically updated.
-- Split Window however you want to, with the built in protection on `min-height` and `min-width` of each sub-window.
-- Easy pick out component for each sub-window
+- Split Window however you want to, with the built in protection on `min-height` and `min-width` of each cell.
+- Easy pick out component for each cell
 - Drag & Drop functionality. Drag a window into an empty window/sun-window. Drop existing window into some empty split window won't re-render the existing one! It's simply position & size change.
 - Ping the window to the background so you wont accidentally move it. You will be able to unpin it some 
 - Too many windows? No problem! You can hide any windows and bring them up from the side drawer management at any time
