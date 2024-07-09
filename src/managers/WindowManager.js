@@ -48,10 +48,10 @@ class CellsManager {
       }
     }, { deep: true })
     watch(this._windows, () => {
-      const cleanwindowsConfig = this.getCleanwindowsConfig()
-      if (!isEqual(this._lastCleanWindowsConfig, cleanwindowsConfig)) {
-        this._lastCleanWindowsConfig = cleanwindowsConfig
-        WorkspaceManager.saveLocalCellWindowConfig(cleanwindowsConfig)
+      const cleanWindowsConfig = this.getCleanWindowsConfig()
+      if (!isEqual(this._lastCleanWindowsConfig, cleanWindowsConfig)) {
+        this._lastCleanWindowsConfig = cleanWindowsConfig
+        WorkspaceManager.saveLocalCellWindowConfig(cleanWindowsConfig)
       }
     }, { deep: true })
   }
@@ -63,7 +63,7 @@ class CellsManager {
       if (cellComponentName) {
         if (this._availableComponents[cellComponentName]) {
           cells[key].component.hasConfig = this._availableComponents[cellComponentName].hasConfig || false
-          cells[key].component.nameID = this.getNextGadgaetComponentNumber(cellComponentName)
+          cells[key].component.nameID = this.getNextCellComponentNumber(cellComponentName)
         } else {
           cells[key].component = {}
         }
@@ -72,7 +72,7 @@ class CellsManager {
     Object.keys(cells).forEach(cellID => { this._cells[cellID] = cells[cellID] })
     Object.keys(windows).forEach(windowID => { this._windows[windowID] = windows[windowID] })
     this._lastCleanCellsConfig = this.getCleanCellsConfig()
-    this._lastCleanWindowsConfig = this.getCleanwindowsConfig()
+    this._lastCleanWindowsConfig = this.getCleanWindowsConfig()
     Object.entries(windows).forEach(([windowID, windowInfo]) => {
       if (!windowInfo.isSingleCell) {
         this._windows[windowID].nameID = this.getNextCellWindowNumber()
@@ -352,7 +352,7 @@ class CellsManager {
     if (component) {
       set(this._cells, `${cellID}.component`, {
         name: component.name,
-        nameID: this.getNextGadgaetComponentNumber(component.name),
+        nameID: this.getNextCellComponentNumber(component.name),
         hasConfig: component.hasConfig || false,
         data: component.default_data || {},
         config: component.default_config || {}
@@ -518,7 +518,7 @@ class CellsManager {
     const newCellWindowID = uuid.generate()
     const componentCopy = { ...component }
     if (componentCopy.name) {
-      componentCopy.nameID = this.getNextGadgaetComponentNumber(componentCopy.name)
+      componentCopy.nameID = this.getNextCellComponentNumber(componentCopy.name)
       componentCopy.data = this._availableComponents[componentCopy.name].default_data || {}
       componentCopy.config = this._availableComponents[componentCopy.name].default_config || {}
       componentCopy.hasConfig = this._availableComponents[componentCopy.name].hasConfig || false
@@ -606,11 +606,11 @@ class CellsManager {
     }
   }
 
-  getCleanwindowsConfig() {
-    const cleanwindowsConfig = {}
+  getCleanWindowsConfig() {
+    const cleanWindowsConfig = {}
     for (const [windowID, window] of Object.entries(this._windows)) {
       const newTree = this.getCleanPileSegmentsTree(window.pileSegmentsTree)
-      cleanwindowsConfig[windowID] = {
+      cleanWindowsConfig[windowID] = {
         left: window.left,
         top: window.top,
         width: window.width,
@@ -621,7 +621,7 @@ class CellsManager {
         pileSegmentsTree: newTree
       }
     }
-    return cleanwindowsConfig
+    return cleanWindowsConfig
   }
 
   getNextCellWindowNumber() {
@@ -630,7 +630,7 @@ class CellsManager {
     return currentMax + 1
   }
 
-  getNextGadgaetComponentNumber(componentName) {
+  getNextCellComponentNumber(componentName) {
     this._cellComponentsNumber[componentName] = get(this._cellComponentsNumber, componentName, [0])
     const currentMax = this._cellComponentsNumber[componentName][this._cellComponentsNumber[componentName].length - 1]
     this._cellComponentsNumber[componentName].push(currentMax + 1)
