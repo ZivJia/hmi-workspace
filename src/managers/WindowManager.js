@@ -2,8 +2,8 @@ import { reactive, watch } from 'vue'
 import { set, get, cloneDeep, isEqual } from 'lodash'
 import mitt from 'mitt'
 import uuid from 'short-uuid'
-import ZIndexesManager from '../ZIndexesManager'
-import WorkspaceManager from '../WorkspaceManager'
+import ZIndexesManager from './ZIndexesManager'
+import WorkspaceManager from './WorkspaceManager'
 
 class CellsManager {
   constructor() {
