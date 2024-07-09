@@ -33,6 +33,9 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 ## Dependencies
 
 `vue-draggable-resizable` https://github.com/mauricius/vue-draggable-resizable
+`ant-design` https://ant.design/
+`mitt` https://www.npmjs.com/package/mitt/v/1.0.1
+`lodash` https://lodash.com/
 
 ## Project Setup
 
