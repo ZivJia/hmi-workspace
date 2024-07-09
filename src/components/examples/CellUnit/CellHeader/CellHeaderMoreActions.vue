@@ -196,7 +196,7 @@ const { cellID, windowID, openConfirmRemoveAllModal, openConfirmLockWindowModal 
 const emit = defineEmits(['moreActionItemClick', 'update:isToLockWindow'])
 
 const handlers = {
-  // Cell cell operations
+  // cell operations
   setting: () => { CellsManager.emitToggleCellConfig(cellID.value) },
   changeCell: () => { HeaderEventBus.emit(`changeCell-${cellID.value}`) },
   splitHorizontal: () => { CellsManager.splitCellCell(cellID.value, 'h') },

@@ -52,10 +52,10 @@ const windowZIndexes = computed(() => ({
 }))
 const windowsPinned = computed(() => ZIndexesManager.pinnedZIndexes)
 
-const cellWindows = computed(() => CellsManager.cellWindows)
+const cellWindows = computed(() => CellsManager.windows)
 const cells = computed(() => CellsManager.cells)
 
-const isCanvasEmpty = computed(() => Object.keys(CellsManager.cellWindows).length === 0)
+const isCanvasEmpty = computed(() => Object.keys(CellsManager.windows).length === 0)
 
 const updateSavedCanvasSize = () => {
   const elmBox = canvas.value.getBoundingClientRect()

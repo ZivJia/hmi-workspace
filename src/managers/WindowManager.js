@@ -5,7 +5,7 @@ import uuid from 'short-uuid'
 import ZIndexesManager from './ZIndexesManager'
 import WorkspaceManager from './WorkspaceManager'
 
-class CellsManager {
+class WindowManager {
   constructor() {
     this._cells = {}
     this._lastCleanCellsConfig = {}
@@ -260,16 +260,16 @@ class CellsManager {
     this._eventBus.emit('cellPanelChange')
   }
 
-  subscribeCellCellComponentRemove(cellID, callback) {
-    this._eventBus.on(`cellCellComponentRemove-${cellID}`, callback)
+  subscribeCellComponentRemove(cellID, callback) {
+    this._eventBus.on(`cellComponentRemove-${cellID}`, callback)
   }
 
-  unsubscribeCellCellComponentRemove(cellID, callback) {
-    this._eventBus.off(`cellCellComponentRemove-${cellID}`, callback)
+  unsubscribeCellComponentRemove(cellID, callback) {
+    this._eventBus.off(`cellComponentRemove-${cellID}`, callback)
   }
 
-  emitCellCellComponentRemove(cellID) {
-    this._eventBus.emit(`cellCellComponentRemove-${cellID}`)
+  emitCellComponentRemove(cellID) {
+    this._eventBus.emit(`cellComponentRemove-${cellID}`)
   }
 
   subscribeWindowHighlight(windowID, callback) {
@@ -338,12 +338,12 @@ class CellsManager {
     }
   }
 
-  setCellWindowPosition(id, left, top) {
+  setWindowPosition(id, left, top) {
     this._windows[id].left = left
     this._windows[id].top = top
   }
 
-  setwindowsize(id, width, height) {
+  setWindowSize(id, width, height) {
     this._windows[id].width = width
     this._windows[id].height = height
   }
@@ -377,12 +377,12 @@ class CellsManager {
     this.adaptWindowToCanvas(windowID, this._windows[windowID])
   }
 
-  setwindowshowAndHide(windowID, isShow) {
+  setWindowShowAndHide(windowID, isShow) {
     this._windows[windowID].hide = !isShow
     this.emitCellPanelChange()
   }
 
-  setCellWindowTempShowAndHide(windowID, isTempShow) {
+  setWindowTempShowAndHide(windowID, isTempShow) {
     this._windows[windowID].tempShow = isTempShow
   }
 
@@ -406,7 +406,7 @@ class CellsManager {
     this.calcWholeTreeSizeOnSavedWindowInfo(windowID)
   }
 
-  splitCellCell(cellID, cutDirection) {
+  splitCell(cellID, cutDirection) {
     const windowID = this._cells[cellID].windowID
     const cellWindow = this._windows[windowID]
     const newCellID = uuid.generate()
@@ -461,7 +461,7 @@ class CellsManager {
     this.removeCellWindow(replacingWindowID)
   }
 
-  removeCellCell(cellID) {
+  removeCell(cellID) {
     const cellToRemove = this._cells[cellID]
     const windowID = cellToRemove.windowID
     const cellWindow = this._windows[windowID]
@@ -494,7 +494,7 @@ class CellsManager {
     this.emitCellPanelChange()
   }
 
-  removeCellWindow(windowID) {
+  removeWindow(windowID) {
     const pileSegmentsTree = this._windows[windowID].pileSegmentsTree
     this.findLeafNodesAndCallback(pileSegmentsTree, (leafID) => {
       const componentToRemove = get(this._cells, `${leafID}.component`, {})
@@ -877,4 +877,4 @@ class CellsManager {
   }
 }
 
-export default reactive(new CellsManager())
+export default reactive(new WindowManager())

@@ -79,8 +79,8 @@ class ZIndexesManager {
     }
   }
 
-  // Getting z indexes for cell windows eliminating the effect of temp top level cell window
-  getOriginalCellWindowZIndexes(zIndexes) {
+  // Getting z indexes for windows eliminating the effect of temp top level window
+  getOriginalWindowZIndexes(zIndexes) {
     const orignalZIndexes = cloneDeep(zIndexes)
     if (orignalZIndexes[this._tempTopLevelCellWindowID] !== undefined) {
       orignalZIndexes[this._tempTopLevelCellWindowID] = this._tempTopLevelCellWindowOriginalZIdex
@@ -160,11 +160,11 @@ class ZIndexesManager {
     Object.assign(this._pinnedZIndexes, this.fillZIndexGap({ ...this._pinnedZIndexes }, zIndexToRemove))
   }
 
-  addGagetWindow(windowID) {
+  addWindow(windowID) {
     this._unpinnedZIndexes[windowID] = this.getNextUnpinnedZIndex()
   }
 
-  removeGagetWindow(windowID) {
+  removeWindow(windowID) {
     if (windowID === this._tempTopLevelCellWindowID) {
       this._tempTopLevelCellWindowID = ''
       this._tempTopLevelCellWindowOriginalZIdex = 0
@@ -216,22 +216,22 @@ class ZIndexesManager {
   ************************************************
   */
 
-  subscribeCellWindowZIndexChange(cellWindowID, callback) {
-    this._eventBus.on(`cellWindowZIndexChange-${cellWindowID}`, callback)
+  subscribeCellWindowZIndexChange(windowID, callback) {
+    this._eventBus.on(`cellWindowZIndexChange-${windowID}`, callback)
   }
 
-  unsubscribeCellWindowZIndexChange(cellWindowID, callback) {
-    this._eventBus.off(`cellWindowZIndexChange-${cellWindowID}`, callback)
+  unsubscribeCellWindowZIndexChange(windowID, callback) {
+    this._eventBus.off(`cellWindowZIndexChange-${windowID}`, callback)
   }
 
-  emitCellWindowZIndexChange(cellWindowID, newZIndex) {
-    this._eventBus.emit(`cellWindowZIndexChange-${cellWindowID}`, newZIndex)
+  emitCellWindowZIndexChange(windowID, newZIndex) {
+    this._eventBus.emit(`cellWindowZIndexChange-${windowID}`, newZIndex)
   }
 
-  bringCellWindowToTop(cellWindowID) {
+  bringCellWindowToTop(windowID) {
     this.emitCellWindowZIndexChange(this._selectedCellWindow, CELL_WINDOW_ZINDEX)
-    this.emitCellWindowZIndexChange(cellWindowID, CELL_WINDOW_ZINDEX + this.CELL_WINDOW_LAYER_ZINTERVAL)
-    this._selectedCellWindow = cellWindowID
+    this.emitCellWindowZIndexChange(windowID, CELL_WINDOW_ZINDEX + this.CELL_WINDOW_LAYER_ZINTERVAL)
+    this._selectedCellWindow = windowID
   }
 }
 
