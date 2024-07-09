@@ -21,6 +21,10 @@ Change anything as you want, the core part is the logic in each component and th
 
 See [Vite Configuration Reference](https://vitejs.dev/config/).
 
+## Dependencies
+
+`vue-draggable-resizable` https://github.com/mauricius/vue-draggable-resizable
+
 ## Project Setup
 
 ```sh
